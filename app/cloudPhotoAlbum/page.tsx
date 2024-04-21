@@ -17,8 +17,15 @@ export default function CloudPhotoAlbum() {
     return fileChunkList
   }
 
+  const createProgressHandler = (item) => {
+    return (e) => {
+      item.percentage = parseInt(String((e.loaded / e.total) * 100))
+    }
+  }
+
   const handleFileChange = async (file) => {
     // 处理文件变化事件，例如上传文件到服务器
+    // let percentage = 0
     const fileChunkList = createFileChunk(file)
     const requireList = fileChunkList
       .map((chunk, index) => {
@@ -26,9 +33,9 @@ export default function CloudPhotoAlbum() {
         formData.append('chunk', chunk)
         formData.append('hash', file.name + '-' + index)
         formData.append('fileName', file.name)
-        return { formData }
+        return { formData, index }
       })
-      .map(({ formData }) =>
+      .map(({ formData, index }) =>
         request({
           url: 'http://localhost:3008/my/upload',
           data: formData,
