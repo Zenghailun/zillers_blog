@@ -1,14 +1,7 @@
-export default function request({
-  url,
-  method = 'post',
-  data,
-  onProgress = (e) => e,
-  headers = {},
-}) {
+export default function request({ url, method = 'post', data, headers = {} }) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
     xhr.open(method, url)
-    xhr.upload.onprogress = onProgress
     Object.keys(headers).forEach((key) => {
       xhr.setRequestHeader(key, headers[key])
     })

@@ -5,31 +5,27 @@ import Card from '@/components/Card'
 import UploadButton from '@/components/UploadButton'
 import FileUploadProgress from '@/components/FileUploadProgress'
 import request from '../../utils/request'
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 
 // export const metadata = genPageMetadata({ title: '云相册' })
 
 export default function CloudPhotoAlbum() {
   const [progress, setProgress] = useState(0)
-  const fileChunkListRef = useRef([])
-  const SIZE = 10 * 1024
+  const SIZE = 10 * 1024 * 1024
   const createFileChunk = (file: Blob, size = SIZE) => {
     const fileChunkList: Blob[] = []
+    let fileSum = 0
     for (let cur = 0; cur < file.size; cur += size) {
       fileChunkList.push(file.slice(cur, cur + size))
+      fileSum++
     }
-    return fileChunkList
-  }
-
-  const createProgressHandler = (item) => {
-    return (e) => {
-      item.percentage = parseInt(String((e.loaded / e.total) * 100))
-    }
+    return { fileChunkList, fileSum }
   }
 
   const handleFileChange = async (file) => {
     // 处理文件变化事件，例如上传文件到服务器
-    const fileChunkList = createFileChunk(file)
+    let count = 0
+    const { fileChunkList, fileSum } = createFileChunk(file)
     const hash = await calculateHash(fileChunkList)
     const requireList = fileChunkList
       .map((chunk, index) => {
@@ -44,19 +40,24 @@ export default function CloudPhotoAlbum() {
         request({
           url: 'http://localhost:3008/my/upload',
           data: formData,
-          // onProgress: createProgressHandler(),
         })
       )
-    Promise.all(requireList).then((value) => {
-      request({
-        url: 'http://localhost:3008/my/merge',
-        headers: {
-          'content-type': 'application/json',
-        },
-        data: JSON.stringify({
-          fileName: file.name,
-          size: SIZE,
-        }),
+    requireList.forEach((item) => {
+      item.then((value) => {
+        count++
+        setProgress((count * 100) / fileSum)
+        if (count === fileSum) {
+          request({
+            url: 'http://localhost:3008/my/merge',
+            headers: {
+              'content-type': 'application/json',
+            },
+            data: JSON.stringify({
+              fileName: file.name,
+              size: SIZE,
+            }),
+          })
+        }
       })
     })
   }
