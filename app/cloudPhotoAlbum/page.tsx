@@ -5,7 +5,7 @@ import Card from '@/components/Card'
 import UploadButton from '@/components/UploadButton'
 import FileUploadProgress from '@/components/FileUploadProgress'
 import request from '../../utils/request'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 
 // export const metadata = genPageMetadata({ title: '云相册' })
 
@@ -21,12 +21,31 @@ export default function CloudPhotoAlbum() {
     }
     return { fileChunkList, fileSum }
   }
+  const requestListRef = useRef([])
+
+  const verifyUpload = async (fileHash) => {
+    const { data } = await request({
+      url: 'http://localhost:3008/my/verify',
+      headers: {
+        'content-type': 'application/json',
+      },
+      data: JSON.stringify({
+        fileHash,
+      }),
+    })
+    return JSON.parse(data)
+  }
 
   const handleFileChange = async (file) => {
     // 处理文件变化事件，例如上传文件到服务器
     let count = 0
     const { fileChunkList, fileSum } = createFileChunk(file)
     const hash = await calculateHash(fileChunkList)
+    const { shouldUpload } = await verifyUpload(hash)
+    if (!shouldUpload) {
+      alert('File has been uploaded')
+      return
+    }
     const requireList = fileChunkList
       .map((chunk, index) => {
         const formData = new FormData()
@@ -40,6 +59,7 @@ export default function CloudPhotoAlbum() {
         request({
           url: 'http://localhost:3008/my/upload',
           data: formData,
+          requestListRef,
         })
       )
     requireList.forEach((item) => {
@@ -54,6 +74,7 @@ export default function CloudPhotoAlbum() {
             },
             data: JSON.stringify({
               fileName: file.name,
+              fileHash: hash,
               size: SIZE,
             }),
           })
@@ -77,6 +98,11 @@ export default function CloudPhotoAlbum() {
     })
   }
 
+  function handlePause() {
+    requestListRef.current.forEach((xhr) => xhr?.abort())
+    requestListRef.current = []
+  }
+
   return (
     <>
       <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -87,7 +113,21 @@ export default function CloudPhotoAlbum() {
           <p className="text-lg leading-7 text-gray-500 dark:text-gray-400">
             在这里上传你的照片和视频
           </p>
-          <UploadButton onFileChange={handleFileChange} />
+          <div style={{ display: 'flex' }}>
+            <UploadButton onFileChange={handleFileChange} />
+            <button
+              className="ml-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+              onClick={handlePause}
+            >
+              暂停上传
+            </button>
+            <button
+              className="ml-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+              onClick={handlePause}
+            >
+              继续上传
+            </button>
+          </div>
           <FileUploadProgress progress={progress} />
         </div>
         <div className="container py-12">
