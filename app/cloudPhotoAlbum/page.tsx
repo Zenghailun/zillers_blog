@@ -50,7 +50,7 @@ export default function CloudPhotoAlbum() {
       .map((chunk, index) => {
         const formData = new FormData()
         formData.append('chunk', chunk)
-        formData.append('hash', file.name + '-' + index)
+        formData.append('sliceHash', hash + '-' + index)
         formData.append('fileName', file.name)
         formData.append('fileHash', hash)
         return { formData, index }
