@@ -5,6 +5,8 @@ import Card from '@/components/Card'
 import UploadButton from '@/components/UploadButton'
 import FileUploadProgress from '@/components/FileUploadProgress'
 import request from '../../utils/request'
+import calculateHash from './utils/calculateHash'
+import { verifyUpload } from './queries/verifyUpload'
 import { useState, useRef } from 'react'
 
 // export const metadata = genPageMetadata({ title: '云相册' })
@@ -22,19 +24,6 @@ export default function CloudPhotoAlbum() {
     return { fileChunkList, fileSum }
   }
   const requestListRef = useRef([])
-
-  const verifyUpload = async (fileHash) => {
-    const { data } = await request({
-      url: 'http://localhost:3008/my/verify',
-      headers: {
-        'content-type': 'application/json',
-      },
-      data: JSON.stringify({
-        fileHash,
-      }),
-    })
-    return JSON.parse(data)
-  }
 
   const handleFileChange = async (file) => {
     // 处理文件变化事件，例如上传文件到服务器
@@ -80,21 +69,6 @@ export default function CloudPhotoAlbum() {
           })
         }
       })
-    })
-  }
-
-  // 生成文件 hash
-  function calculateHash(fileChunkList): Promise<string> {
-    return new Promise((resolve, reject) => {
-      // 添加 worker属性
-      const worker = new Worker('hashWorker.js')
-      worker.postMessage({ fileChunkList })
-      worker.onmessage = (e) => {
-        const { percentage, hash } = e.data
-        if (hash) {
-          resolve(hash)
-        }
-      }
     })
   }
 
