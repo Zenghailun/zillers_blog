@@ -7,13 +7,14 @@ import FileUploadProgress from '@/components/FileUploadProgress'
 import request from '../../utils/request'
 import calculateHash from './utils/calculateHash'
 import { verifyUpload } from './queries/verifyUpload'
+import { useUpLoadChunks } from './hooks/useUploadChunks'
 import { useState, useRef } from 'react'
 
 // export const metadata = genPageMetadata({ title: '云相册' })
 
 export default function CloudPhotoAlbum() {
-  const [progress, setProgress] = useState(0)
-  const SIZE = 10 * 1024 * 1024
+  const SIZE = 50 * 1024 * 1024
+  const { progress, upLoadChunks } = useUpLoadChunks()
   const createFileChunk = (file: Blob, size = SIZE) => {
     const fileChunkList: Blob[] = []
     let fileSum = 0
@@ -24,57 +25,39 @@ export default function CloudPhotoAlbum() {
     return { fileChunkList, fileSum }
   }
   const requestListRef = useRef([])
-
+  const fileChunkListRef = useRef<Blob[]>([])
+  const fileHashRef = useRef<string>('')
+  const fileRef = useRef(null)
   const handleFileChange = async (file) => {
     // 处理文件变化事件，例如上传文件到服务器
-    let count = 0
+    fileRef.current = file
     const { fileChunkList, fileSum } = createFileChunk(file)
-    const hash = await calculateHash(fileChunkList)
+    fileChunkListRef.current = fileChunkList
+    const hash = await calculateHash(fileChunkListRef.current)
+    fileHashRef.current = hash
     const { shouldUpload } = await verifyUpload(hash)
     if (!shouldUpload) {
       alert('File has been uploaded')
       return
     }
-    const requireList = fileChunkList
-      .map((chunk, index) => {
-        const formData = new FormData()
-        formData.append('chunk', chunk)
-        formData.append('sliceHash', hash + '-' + index)
-        formData.append('fileName', file.name)
-        formData.append('fileHash', hash)
-        return { formData, index }
-      })
-      .map(({ formData, index }) =>
-        request({
-          url: 'http://localhost:3008/my/upload',
-          data: formData,
-          requestListRef,
-        })
-      )
-    requireList.forEach((item) => {
-      item.then((value) => {
-        count++
-        setProgress((count * 100) / fileSum)
-        if (count === fileSum) {
-          request({
-            url: 'http://localhost:3008/my/merge',
-            headers: {
-              'content-type': 'application/json',
-            },
-            data: JSON.stringify({
-              fileName: file.name,
-              fileHash: hash,
-              size: SIZE,
-            }),
-          })
-        }
-      })
-    })
+    upLoadChunks(fileChunkListRef.current, [], file, hash, requestListRef, SIZE)
   }
 
   function handlePause() {
     requestListRef.current.forEach((xhr) => xhr?.abort())
     requestListRef.current = []
+  }
+
+  const handleResume = async () => {
+    const { uploadedList } = await verifyUpload(fileHashRef.current)
+    upLoadChunks(
+      fileChunkListRef.current,
+      uploadedList,
+      fileRef.current,
+      fileHashRef.current,
+      requestListRef,
+      SIZE
+    )
   }
 
   return (
@@ -97,7 +80,7 @@ export default function CloudPhotoAlbum() {
             </button>
             <button
               className="ml-2 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-              onClick={handlePause}
+              onClick={handleResume}
             >
               继续上传
             </button>
