@@ -1,7 +1,10 @@
 # Zillers' blog
 这里是海伦记录生活和学习的个人博客
-### Todo
-- 主页内容的更新
-- 大文件上传：支持断点续传
-- 多图片和视频加载优化显示
-- CI, CD优化
+后端：https://github.com/Zenghailun/zillers_blog_backend
+## V1.1
+- 文件切片
+- webWorker计算文件hash避免文件重复上传
+- 进度条精确显示（统计Upload请求的完成数）
+- 上传暂停
+- 断点续传
+- 请求并发控制
