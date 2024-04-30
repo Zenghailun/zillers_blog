@@ -31,9 +31,8 @@ export default function CloudPhotoAlbum() {
   const handleFileChange = async (file) => {
     // 处理文件变化事件，例如上传文件到服务器
     fileRef.current = file
-    const { fileChunkList, fileSum } = createFileChunk(file)
+    const { fileChunkList, hash } = await calculateHash(file, SIZE)
     fileChunkListRef.current = fileChunkList
-    const hash = await calculateHash(fileChunkListRef.current)
     fileHashRef.current = hash
     const { shouldUpload } = await verifyUpload(hash)
     if (!shouldUpload) {
