@@ -1,4 +1,5 @@
 self.importScripts('https://cdn.jsdelivr.net/npm/spark-md5')
+
 self.onmessage = (e) => {
   const { file, SIZE } = e.data
   const spark = new self.SparkMD5.ArrayBuffer()
