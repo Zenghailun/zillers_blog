@@ -40,7 +40,7 @@ jobs:
       - name: Building
         run: |
           yarn build
-          zip -r assets ./dist/**
+          zip -r assets ./next/**
       # 基于当前commit进行版本发布(Create a release)，tag_name是v前缀加上package.json的version值
       - name: Create GitHub Release
         # 此步骤中，版本发布后会返回对应的url，以供下面上传制品的步骤中读取使用
