@@ -8,7 +8,9 @@ export const useUpLoadChunks = () => {
   const upLoadChunks = (fileChunkList, upLoadedChunks = [], file, hash, requestListRef, size) => {
     let count = 0
     const fileSum = fileChunkList.length - upLoadedChunks.length
-    const upLoadedChunksSet = new Set(upLoadedChunks.map((item) => Number(item.split('-')[1])))
+    const upLoadedChunksSet = new Set(
+      upLoadedChunks.map((item) => Number((item as string).split('-')[1]))
+    )
     const requireList = fileChunkList
       .map((chunk, index) => {
         const formData = new FormData()

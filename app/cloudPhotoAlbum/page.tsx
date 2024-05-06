@@ -43,7 +43,7 @@ export default function CloudPhotoAlbum() {
   }
 
   function handlePause() {
-    requestListRef.current.forEach((xhr) => xhr?.abort())
+    requestListRef.current.forEach((xhr) => (xhr as XMLHttpRequest)?.abort())
     requestListRef.current = []
   }
 
