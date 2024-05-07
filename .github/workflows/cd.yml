@@ -55,29 +55,29 @@ jobs:
           draft: false
           prerelease: false
       # 把assets.zip上传到仓库对应的发布版本Release上
-      - name: Update Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PROJECT_PERSONAL_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./assets.zip
-          asset_name: assets.zip
-          asset_content_type: application/zip
-      # 把制品上传到部署机器
-      - name: Upload to Deploy Server
-        uses: easingthemes/ssh-deploy@v2.0.7
-        env:
-          # SSH_PRIVATE_KEY为准备工作步骤三中生成密钥对里的私钥
-          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_TOKEN }}
-          # 指定当前目录中要上传的内容
-          SOURCE: ".next/"
-          # 指定上传到部署机器的哪个目录下
-          TARGET: "var/www"
-          # 上传前指令，此处用于清空TARGET下的文件
-          ARGS: "-avzr --delete"
-          # REMOTE_HOST为机器的公网IP
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          # REMOTE_USER为登录机器时用到账号名
-          REMOTE_USER: ${{secrets.REMOTE_USER}}
+      # - name: Update Release Asset
+      #   id: upload-release-asset
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.PROJECT_PERSONAL_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./assets.zip
+      #     asset_name: assets.zip
+      #     asset_content_type: application/zip
+      # # 把制品上传到部署机器
+      # - name: Upload to Deploy Server
+      #   uses: easingthemes/ssh-deploy@v2.0.7
+      #   env:
+      #     # SSH_PRIVATE_KEY为准备工作步骤三中生成密钥对里的私钥
+      #     SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_TOKEN }}
+      #     # 指定当前目录中要上传的内容
+      #     SOURCE: ".next/"
+      #     # 指定上传到部署机器的哪个目录下
+      #     TARGET: "var/www"
+      #     # 上传前指令，此处用于清空TARGET下的文件
+      #     ARGS: "-avzr --delete"
+      #     # REMOTE_HOST为机器的公网IP
+      #     REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+      #     # REMOTE_USER为登录机器时用到账号名
+      #     REMOTE_USER: ${{secrets.REMOTE_USER}}
