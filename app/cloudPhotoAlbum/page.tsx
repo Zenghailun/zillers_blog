@@ -86,19 +86,6 @@ export default function CloudPhotoAlbum() {
           </div>
           <FileUploadProgress progress={progress} />
         </div>
-        <div className="container py-12">
-          <div className="-m-4 flex flex-wrap">
-            {projectsData.map((d) => (
-              <Card
-                key={d.title}
-                title={d.title}
-                description={d.description}
-                imgSrc={d.imgSrc}
-                href={d.href}
-              />
-            ))}
-          </div>
-        </div>
       </div>
     </>
   )
